@@ -16,7 +16,7 @@ screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 #h1
-pygame.display.set_caption('Snake')
+pygame.display.set_caption('Spider')
 
 #Налаштування частоти відтворення екрану
 
@@ -43,13 +43,13 @@ while True:
         if spyder_image_pos['y'] > 0:
             spyder_image_pos['y'] -= 4
     if keys[pygame.K_s]:
-        if spyder_image_pos['y'] > 600:
+        if spyder_image_pos['y'] < 600:
             spyder_image_pos['y'] += 4
     if keys[pygame.K_a]:
         if spyder_image_pos['x'] > 0:
             spyder_image_pos['x'] -= 4
     if keys[pygame.K_d]:
-        if spyder_image_pos['x'] > 800:
+        if spyder_image_pos['x'] < 800:
             spyder_image_pos['x'] += 4
 
     screen.blit(background_surface, (0,0))
