@@ -64,3 +64,6 @@ while True:
 
     #Обмежуємо швидкість відтворення - FPS
     clock.tick(clock_tick)
+
+
+

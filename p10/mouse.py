@@ -1,8 +1,16 @@
 import pygame
 
 pygame.init()
-screen = pygame.display.set_mode((1000,700))
+screen = pygame.display.set_mode((1200,900))
 clock = pygame.time.Clock()
+
+for y_pos221 in range(1000):
+    for x_pos221 in range(700):
+        pygame.draw.circle(screen, (127, 255, 0), (y_pos221,x_pos221), 20)
+pygame.display.update()
+
+
+
 def main():
     is_draw = False
     is_draw2 = False
