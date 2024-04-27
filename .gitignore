@@ -1,6 +1,1 @@
-venv
-bin
-include
-lib
-.idea
-.git
+pyvenv.cfg

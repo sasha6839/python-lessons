@@ -1,16 +1,18 @@
-x = int(input('   :   '))
-y = int(input("   1: +  \n" "   2: -  \n" "   3: *  \n" "   4: /  \n"))
-z = int(input('   :   '))
-if y == 1:
-    print(f'{x+z}')
-else:
-    if y == 2:
-        print(f'{x-z}')
-    else:
-        if y == 3:
-            print(f'{x*z}')
-        else:
-            if y == 4:
-                print(f'{x/z}')
-            else:
-                print('Error')
+n_el = input("Кількість елементів: ") * 3
+x = []
+
+
+
+for i in range(1,n_el):
+    f = input("Введіть формулу: ")
+
+
+
+
+if n_el/3 == 1:
+    print('Кількість елементів має бути більше одного')
+elif n_el/3 < 10:
+    pass
+
+elif n_el/3 > 10:
+    print('Кількість елементів не має бути більше 10')
