@@ -55,6 +55,7 @@ class Wizard:
         else:
             self.x = screen_width - self.width
 
+
 class Diamond:
     x: int = 0
     y: int = 0
@@ -70,8 +71,10 @@ class Diamond:
         screen.blit(self.image, (self.x, self.y))
 
     def fall31(self):
-        if self.y < 599:
-            self.y += self.speed
+        self.y += self.speed
+        # if self.y > 650:
+        #     lost =+ 1
+        #     g.status()
 
 
 class Diamonds:
@@ -97,6 +100,18 @@ class Diamonds:
         for item in self.diamonds_list:
             item.show()
 
+    def check_collision(self, player):
+        collision = 0
+        for item in self.diamonds_list:
+            if ((item.x >= player.x and item.y >= player.y) and
+                    (item.x <= player.x + player.width and item.y < player.y + player.height)):
+                collision = 1
+                self.diamonds_list.remove(item)
+            elif item.y > screen_height:
+                collision = -1
+                self.diamonds_list.remove(item)
+
+        return collision
 
 class Game:
     run: bool = True
@@ -107,6 +122,8 @@ class Game:
     player_move = ''
     diamonds = None
     diamond_event = pygame.USEREVENT + 1
+    catch: int = 0
+    lost: int = 0
 
     def __init__(self):
         pygame.display.set_caption('Wizard')
@@ -114,6 +131,18 @@ class Game:
         self.player = Wizard()
         self.diamonds = Diamonds()
         self.diamonds_add()
+
+    def status(self):
+        check = self.diamonds.check_collision(self.player)
+        if check == 1:
+            self.catch += 1
+        if check == -1:
+            self.lost += 1
+
+        font = pygame.font.SysFont('Arial', 30)
+        message = " Score: " + str(self.catch) + ' - ' + str(self.lost) + ' '
+        text = font.render(message, True, (255, 255, 255), (47, 14, 51))
+        screen.blit(text,(10,10))
 
     def diamonds_add(self):
         pygame.time.set_timer(self.diamond_event, random.randint(1000,2500))
@@ -147,6 +176,7 @@ class Game:
                 self.player.move(self.player_move)
                 self.diamonds.draw()
                 self.diamonds.fall()
+                self.status()
 
                 pygame.display.update()
                 self.clock.tick(self.fps)
