@@ -17,12 +17,12 @@ class Ammunition:
     def __init__(self):
         self.bullets = []
 
-    def add(self, x, y):
+    def add(self, xy):
         b = pygame.Surface((4, 6))
-        b.fill((0, 0, 0))
-        rect = b.get_rect(center=(x, y))
+        b.fill((220, 220, 220))
+        rect = b.get_rect(center=xy)
 
-        self.bullets.append({'b':b, 'rect': rect})
+        self.bullets.append({'surf':b, 'rect': rect})
 
     def move(self):
         for bullet in self.bullets:
@@ -32,6 +32,7 @@ class Ammunition:
                 self.bullets.remove(bullet)
 
     def draw(self):
+        self.move()
         for bullet in self.bullets:
             screen.blit(bullet['surf'], bullet['rect'].center)
 
@@ -48,6 +49,7 @@ class Player:
 
     def draw(self):
         self.move()
+        self.ammo.draw()
         screen.blit(self.img, self.rect.center)
 
     def move(self):
