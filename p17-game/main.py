@@ -13,27 +13,75 @@ FONTS_PATH= 'fonts/'
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+class Ammunition:
+    def __init__(self):
+        self.bullets = []
+
+    def add(self, x, y):
+        b = pygame.Surface((4, 6))
+        b.fill((0, 0, 0))
+        rect = b.get_rect(center=(x, y))
+
+        self.bullets.append({'b':b, 'rect': rect})
+
+    def move(self):
+        for bullet in self.bullets:
+            bullet['rect'].cetery -= 5
+
+            if bullet['rect'].cetery < 0:
+                self.bullets.remove(bullet)
+
+    def draw(self):
+        for bullet in self.bullets:
+            screen.blit(bullet['surf'], bullet['rect'].center)
+
 
 class Player:
     def __init__(self):
-        self.x = SCREEN_WIDTH / 2
-        self.y = SCREEN_HEIGHT / 2
         self.img = pygame.image.load(IMAGES_PATH_PLAYER + 'Ship3.png')
+        self.rect = self.img.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 70))
+        self.speed = 5
+        self.moving = []
+        self.dt = 1
+
+        self.ammo = Ammunition()
 
     def draw(self):
-        screen.blit(self.img, (self.x, self.y))
+        self.move()
+        screen.blit(self.img, self.rect.center)
 
     def move(self):
-        pass
+        if len(self.moving) > 0:
+            if pygame.K_a == self.moving[0]:
+                self.left()
+            elif pygame.K_d == self.moving[0]:
+                self.right()
+        # self.moving = None
+        # if self.moving == 'left':
+        #     self.left()
+        # elif self.moving == 'right':
+        #     self.right()
 
     def left(self):
-        pass
+        if self.rect.left > 0:
+            self.rect.left -= self.speed
+        else:
+            self.rect.left = SCREEN_WIDTH
+        # self.x = self.x - self.speed
+        # screen.blit(self.img, (self.x, self.y))
 
     def right(self):
-        pass
+        if self.rect.right <= SCREEN_WIDTH:
+            self.rect.right += self.speed
+        else:
+            self.rect.right = 0
+        # self.x = self.x + self.speed
+        # screen.blit(self.img, (self.x, self.y))
 
     def shoot(self):
-        pass
+        self.ammo.add(self.rect.center)
+        # self.ammo.move()
+        # self.ammo.draw()
 
 
 class MainMenu:
@@ -128,61 +176,60 @@ class Game:
         self.bg = Background()
         self.player = Player()
 
+        self.dt = 1
+        self.clock = pygame.time.Clock()
+        self.fps = 1000
+
     def quit(self):
         pygame.quit()
         sys.exit()
 
     def init(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.quit()
+            if self.game_run:
+                self.run()
+            else:
+                self.main_menu()
 
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_x:
-                        self.quit()
-                    if event.key == pygame.K_s:
-                        self.run()
-
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    action = self.menu.click()
-                    if action == 'start':
-                        self.run()
-                    elif action == 'exit':
-                        self.quit()
-                # if event.type == pygame.MOUSEBUTTONDOWN:
-                #     mouse_cord = pygame.mouse.get_pos()
-                #     if 280 <= mouse_cord[0]:
-                #         if 280 + 160 >= mouse_cord[0]:
-                #             if 234 <= mouse_cord[1]:
-                #                 if 234 + 22 >= mouse_cord[1]:
-                #                     print('gfyufttyifttyk')
-                #
-                # if event.type == pygame.MOUSEBUTTONDOWN:
-                #     mouse_cord = pygame.mouse.get_pos()
-                #     print(mouse_cord)
-                #     if 280 <= mouse_cord[0]:
-                #         if 280 + 160 >= mouse_cord[0]:
-                #             if 270 <= mouse_cord[1]:
-                #                 if 270 + 30 >= mouse_cord[1]:
-                #                     self.quit()
-
-            self.menu.draw()
             pygame.display.update()
+    def main_menu(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_x:
+                    self.quit()
+                if event.key == pygame.K_s:
+                    self.game_run = True
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                action = self.menu.click()
+                if action == 'start':
+                    self.game_run = True
+                elif action == 'exit':
+                    self.quit()
+        self.menu.draw()
 
     def run(self):
-        self.game_run = True
-        while self.game_run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.quit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        self.game_run = False
-                        break
-            self.bg.draw()
-            self.player.draw()
-            pygame.display.update()
+        self.player.dt = self.clock.tick(self.fps)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    self.game_run = False
+                    break
+                elif event.type == pygame.K_SPACE:
+                    self.player.shoot()
+                elif event.key == pygame.K_a or event.key == pygame.K_d:
+                    self.player.moving.append(event.key)
+
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_a or event.key == pygame.K_d:
+                    self.player.moving.remove(event.key)
+        self.bg.draw()
+        self.player.draw()
 
 
 if __name__ == '__main__':
