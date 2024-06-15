@@ -1,34 +1,36 @@
 import pygame
 import random
 import sys
+import asyncio
 
 SCREEN_WIDTH = 960  # TODO: Розмір екрану можливо зміниться
 SCREEN_HEIGHT = 540 #
 IMAGES_PATH_MENU = 'images/menu/'
 IMAGES_PATH_BG = 'images/background/'
 IMAGES_PATH_PLAYER = 'images/player/'
-IMAGES_PATH_ENEMY = 'images//'
+IMAGES_PATH_ENEMY = 'images/enemy/'
 FONTS_PATH= 'fonts/'
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+
 class Ammunition:
     def __init__(self):
         self.bullets = []
 
-    def add(self, xy):
-        b = pygame.Surface((4, 6))
-        b.fill((220, 220, 220))
-        rect = b.get_rect(center=xy)
+    def add(self, center):
+        surf = pygame.Surface((4, 6))
+        surf.fill((220, 220, 220))
+        rect = surf.get_rect(center=center)
+        rect.x += 30
 
-        self.bullets.append({'surf':b, 'rect': rect})
+        self.bullets.append({'surf':surf, 'rect': rect})
 
     def move(self):
         for bullet in self.bullets:
-            bullet['rect'].cetery -= 5
-
-            if bullet['rect'].cetery < 0:
+            bullet['rect'].centery -= 5
+            if bullet['rect'].centery < 0:
                 self.bullets.remove(bullet)
 
     def draw(self):
@@ -84,6 +86,39 @@ class Player:
         self.ammo.add(self.rect.center)
         # self.ammo.move()
         # self.ammo.draw()
+
+
+class Enemies:
+
+    def __init__(self):
+        self.enemy_list: list = []
+
+    def add(self):
+        n = random.randint(1,8)
+        img = pygame.image.load(IMAGES_PATH_ENEMY + 'Ship{0}.png'.format(n))
+        img = pygame.transform.rotate(img, 180)
+
+        y = random.randint(-50, -20)
+        x = random.randint(50, SCREEN_WIDTH - 50)
+        speed = random.randint(1, 3)
+        self.enemy_list.append({'surf':img, 'x': x, 'y': y, 'speed': speed})
+
+    def move(self):
+        for e in self.enemy_list:
+            e['y'] += e['speed']
+
+            if e['y'] >= SCREEN_HEIGHT - 100:
+                self.enemy_list.remove(e)
+
+    def draw(self):
+        self.move
+
+        for e in self.enemy_list:
+            screen.blit(e['surf'], (e['x'], e['y']))
+
+    def shoot(self):
+        # TODO: Optional
+        pass
 
 
 class MainMenu:
@@ -177,16 +212,20 @@ class Game:
         self.menu = MainMenu()
         self.bg = Background()
         self.player = Player()
+        self.enemy = Enemies()
 
         self.dt = 1
         self.clock = pygame.time.Clock()
-        self.fps = 1000
+        self.fps = 60
+
+        self.enemies_event = pygame.event.custom_type()
+        pygame.time.set_timer(self.enemies_event, random.randint(1,2))
 
     def quit(self):
         pygame.quit()
         sys.exit()
 
-    def init(self):
+    async def init(self):
         while True:
             if self.game_run:
                 self.run()
@@ -194,6 +233,8 @@ class Game:
                 self.main_menu()
 
             pygame.display.update()
+            await asyncio.sleep(0)
+
     def main_menu(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -213,6 +254,15 @@ class Game:
                     self.quit()
         self.menu.draw()
 
+    def collisions(self):
+        for e in self.enemy.enemy_list:
+            for b in self.player.ammo.bullets:
+                # e['x'], e['y'] === b.rect.x, b.rect.y
+                if (b['rect'].x > e['x'] and b['rect'].x < e['x'] + 60) and (b['rect'].y < e['y']+40):
+                    self.enemy.enemy_list.remove(e)
+                    # TODO: add points
+
+
     def run(self):
         self.player.dt = self.clock.tick(self.fps)
         for event in pygame.event.get():
@@ -222,18 +272,25 @@ class Game:
                 if event.key == pygame.K_q:
                     self.game_run = False
                     break
-                elif event.type == pygame.K_SPACE:
-                    self.player.shoot()
+                elif event.key == pygame.K_SPACE:
+                     self.player.shoot()
                 elif event.key == pygame.K_a or event.key == pygame.K_d:
                     self.player.moving.append(event.key)
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a or event.key == pygame.K_d:
                     self.player.moving.remove(event.key)
+            elif event.type == self.enemies_event:
+                self.enemy.add()
+                pygame.time.set_timer(self.enemies_event, random.randint(1,2))
+
         self.bg.draw()
+        self.enemy.draw()
+        self.enemy.move()
         self.player.draw()
+        self.collisions()
 
 
 if __name__ == '__main__':
     game = Game()
-    game.init()
+    asyncio.run(game.init())
